@@ -3,782 +3,184 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ระบบข้อมูลพนักงาน & สร้างบัตรประจำตัว</title>
-
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-  
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-  
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-
+  <title>คูปองส่วนลดพิเศษ</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
   <style>
-    :root {
-      --primary-blue: #0284c7;
-      --bg-gradient: linear-gradient(135deg, #e0f2fe 0%, #f0f9ff 100%);
-      --card-bg: #ffffff;
-      --badge-blue: #e0f2fe;
-      --badge-text-blue: #0369a1;
+    @keyframes pulse-border {
+      0% { border-color: #ef4444; }
+      50% { border-color: #3b82f6; }
+      100% { border-color: #ef4444; }
     }
-
-    body { 
-      background: var(--bg-gradient);
-      font-family: 'Prompt', sans-serif; 
-      padding-top: 20px; 
-      min-height: 100vh;
-      color: #334155;
-    }
-
-    .main-card { 
-      border: none; 
-      border-radius: 16px;
-      box-shadow: 0 10px 25px -5px rgba(14, 165, 233, 0.1), 0 8px 10px -6px rgba(14, 165, 233, 0.05); 
-      background: var(--card-bg);
-    }
-
-    .header-title {
-      color: #0369a1;
-      font-weight: 600;
-    }
-
-    /* กรอบรูปพนักงานทรงสี่เหลี่ยมขอบมนในตาราง */
-    .emp-avatar { 
-      width: 75px; 
-      height: 95px; 
-      object-fit: cover; 
-      border-radius: 10px; 
-      border: 2px solid #bae6fd; 
-      box-shadow: 0 2px 6px rgba(0,0,0,0.06);
-    }
-
-    .no-img { 
-      width: 75px; 
-      height: 95px; 
-      border-radius: 10px; 
-      background: #e0f2fe; 
-      display: flex; 
-      align-items: center; 
-      justify-content: center; 
-      font-size: 11px; 
-      color: #0284c7; 
-      border: 2px solid #bae6fd;
-      text-align: center;
-    }
-
-    /* Tab Styling */
-    .nav-tabs {
-      border-bottom: 2px solid #e0f2fe;
-    }
-
-    .nav-tabs .nav-link {
-      color: #64748b;
-      font-weight: 400;
-      border: none;
-      border-bottom: 3px solid transparent;
-      padding: 10px 20px;
-      transition: all 0.2s ease;
-    }
-
-    .nav-tabs .nav-link.active { 
-      font-weight: 600; 
-      color: var(--primary-blue); 
-      background: transparent;
-      border-bottom: 3px solid var(--primary-blue); 
-    }
-
-    .nav-tabs .nav-link:hover {
-      color: var(--primary-blue);
-      border-color: transparent;
-    }
-
-    /* Table Styling */
-    .table-container {
-      border-radius: 12px;
-      overflow: hidden;
-      border: 1px solid #e0f2fe;
-    }
-
-    .table {
-      margin-bottom: 0;
-    }
-
-    .table thead {
-      background-color: #f0f9ff;
-    }
-
-    .table th {
-      color: #0369a1;
-      font-weight: 500;
-      border-bottom: 1px solid #bae6fd;
-      padding: 12px 16px;
-    }
-
-    .table td { 
-      vertical-align: middle; 
-      padding: 12px 16px;
-      border-bottom: 1px solid #f1f5f9;
-    }
-
-    /* Badges */
-    .badge-emp-id {
-      background-color: var(--badge-blue);
-      color: var(--badge-text-blue);
-      font-weight: 500;
-      font-size: 0.85rem;
-      padding: 6px 12px;
-      border-radius: 20px;
-    }
-
-    .badge-dept {
-      background-color: #e0f2fe;
-      color: #0284c7;
-      font-weight: 500;
-      padding: 5px 10px;
-      border-radius: 6px;
-    }
-
-    .badge-nickname {
-      background-color: #f1f5f9;
-      color: #0369a1;
-      font-weight: 600;
-      padding: 4px 10px;
-      border-radius: 12px;
-    }
-
-    .col-id-nick {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .search-box {
-      border-radius: 20px;
-      border: 1px solid #bae6fd;
-      padding: 8px 16px;
-      background-color: #f8fafc;
-      transition: all 0.2s;
-    }
-
-    .search-box:focus {
-      background-color: #fff;
-      border-color: #38bdf8;
-      box-shadow: 0 0 0 0.25rem rgba(56, 189, 248, 0.25);
-    }
-
-    /* ---------------- สไตล์บัตรพนักงาน (ID Card Generator 54x85.6mm) ---------------- */
-    .id-card-wrapper {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      padding: 10px;
-    }
-
-    .id-card {
-      /* ขนาดตามกรอบบัตรพลาสติกมาตรฐาน 54x85.6mm */
-      width: 54mm;
-      height: 85.6mm;
-      
-      /* สีพื้นหลังน้ำเงินสว่างโปร่ง */
-      background: linear-gradient(180deg, #38bdf8 0%, #0284c7 100%);
-      
-      border-radius: 3mm;
-      box-shadow: 0 5px 15px rgba(2, 132, 199, 0.15);
-      color: #fff;
-      overflow: hidden;
-      position: relative;
-      padding: 4mm 3mm; 
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      text-align: center;
-      
-      -webkit-print-color-adjust: exact;
-      print-color-adjust: exact;
-    }
-
-    .id-card::before {
-      content: "";
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      height: 60%;
-      background: #ffffff;
-      border-top-left-radius: 8mm;
-      border-top-right-radius: 8mm;
-      z-index: 1;
-    }
-
-    /* กราฟิกลายน้ำจางๆ สัตว์ทะเล & อาหาร */
-    .card-watermark-top {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 40%;
-      z-index: 2;
-      pointer-events: none;
-      opacity: 0.18;
-    }
-
-    .card-watermark-bottom {
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      width: 100%;
-      height: 60%;
-      z-index: 2;
-      pointer-events: none;
-      opacity: 0.08;
-    }
-
-    /* หัวข้อ บนสุด */
-    .card-header-text {
-      position: relative;
-      z-index: 3;
-      font-size: 12.65pt;
-      font-weight: 700;
-      letter-spacing: 0.5px;
-      margin-bottom: 2mm;
-      color: #ffffff;
-      text-transform: uppercase;
-    }
-
-    /* กรอบรูปพนักงาน (ลดขนาดลง 10%: จาก 28x35mm เหลือ 25.2x31.5mm) */
-    .card-photo-container {
-      position: relative;
-      z-index: 3;
-      width: 25.2mm;
-      height: 31.5mm;
-      border-radius: 2mm;
-      border: 0.8mm solid #ffffff;
-      box-shadow: 0 3px 8px rgba(0,0,0,0.12);
-      overflow: hidden;
-      background: #f0f9ff;
-    }
-
-    .card-photo-container img {
-      width: 100% !important;
-      height: 100% !important;
-      object-fit: cover !important;
-      object-position: center !important;
-    }
-
-    .card-body-info {
-      position: relative;
-      z-index: 3;
-      color: #334155;
-      margin-top: 2.5mm;
-      width: 100%;
-    }
-
-    .card-fullname {
-      font-size: 9.5pt;
-      font-weight: 700;
-      color: #0369a1;
-      margin-bottom: 0.5mm;
-      text-transform: uppercase;
-    }
-
-    /* ชื่อเล่น */
-    .card-nickname {
-      font-size: 14pt;
-      color: #0284c7;
-      font-weight: 600;
-      margin-bottom: 2mm;
-    }
-
-    /* รหัส, ประเภท, สังกัด */
-    .card-detail-item {
-      font-size: 11pt;
-      color: #64748b;
-      margin-bottom: 0.8mm;
-    }
-
-    .card-detail-item span {
-      font-weight: 600;
-      color: #1e293b;
-    }
-
-    @media (max-width: 768px) {
-      body { padding-top: 10px; }
-      .main-card { padding: 1.25rem !important; }
-      .search-box { width: 100% !important; margin-top: 12px; }
-      .header-title { font-size: 1.3rem; }
-      .table th, .table td { padding: 8px 10px; font-size: 0.88rem; }
-      .id-card { transform: scale(0.9); transform-origin: top center; }
-      .id-card-wrapper { padding: 5px 0; }
-    }
+    .active-ticket { animation: pulse-border 2s infinite; }
   </style>
 </head>
-<body>
+<body class="bg-gray-100 min-h-screen flex items-center justify-center p-4">
 
-<div class="container mb-5">
-  <div class="card main-card p-4 mb-4">
-    <div class="d-flex flex-wrap justify-content-between align-items-center mb-3">
-      <h3 class="m-0 header-title">📑 ระบบข้อมูลพนักงาน</h3>
-      <input type="text" id="searchInput" class="form-control w-25 search-box" placeholder="🔍 ค้นหา (ชื่อ, รหัส, แผนก)..." onkeyup="filterTable()">
+  <div class="max-w-md w-full bg-white rounded-2xl shadow-xl overflow-hidden text-center p-6">
+    <div id="loading" class="py-10">
+      <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-green-500 mx-auto"></div>
+      <p id="loading-txt" class="mt-4 text-gray-700 font-medium text-sm">กำลังเชื่อมต่อ LINE...</p>
     </div>
 
-    <ul class="nav nav-tabs" id="empTab" role="tablist">
-      <li class="nav-item" role="presentation">
-        <button class="nav-link active" id="fulltime-tab" data-bs-toggle="tab" data-bs-target="#fulltime" type="button" role="tab">พนักงานประจำ</button>
-      </li>
-      <li class="nav-item" role="presentation">
-        <button class="nav-link" id="parttime-tab" data-bs-toggle="tab" data-bs-target="#parttime" type="button" role="tab">พนักงานพาร์ทไทม์</button>
-      </li>
-      <li class="nav-item" role="presentation">
-        <button class="nav-link" id="card-tab-btn" data-bs-toggle="tab" data-bs-target="#card-tab" type="button" role="tab">🪪 สร้างบัตรพนักงาน</button>
-      </li>
-    </ul>
-
-    <div class="tab-content mt-3" id="empTabContent">
-      
-      <div class="tab-pane fade show active" id="fulltime" role="tabpanel">
-        <div class="table-responsive table-container">
-          <table class="table table-hover align-middle" id="ftTable">
-            <thead>
-              <tr>
-                <th style="width: 90px;" class="text-center">รูป</th>
-                <th style="width: 180px;">รหัส / ชื่อเล่น</th>
-                <th>ชื่อจริง</th>
-                <th style="width: 100px;" class="text-center">จัดการ</th>
-              </tr>
-            </thead>
-            <tbody id="ftBody">
-              <tr><td colspan="4" class="text-center py-4 text-muted">กำลังโหลดข้อมูล...</td></tr>
-            </tbody>
-          </table>
+    <div id="content" class="hidden">
+      <div class="flex items-center justify-center gap-3 mb-6">
+        <img id="user-picture" class="w-12 h-12 rounded-full border-2 border-green-500 bg-gray-200" src="" alt="Profile">
+        <div class="text-left">
+          <p class="text-xs text-gray-500">ยินดีต้อนรับ</p>
+          <p id="user-name" class="font-bold text-gray-800 text-sm"></p>
         </div>
       </div>
 
-      <div class="tab-pane fade" id="parttime" role="tabpanel">
-        <div class="table-responsive table-container">
-          <table class="table table-hover align-middle" id="ptTable">
-            <thead>
-              <tr>
-                <th style="width: 90px;" class="text-center">รูป</th>
-                <th style="width: 180px;">รหัส / ชื่อเล่น</th>
-                <th>ชื่อจริง</th>
-                <th>สาขา</th>
-                <th>แผนก</th>
-                <th style="width: 100px;" class="text-center">จัดการ</th>
-              </tr>
-            </thead>
-            <tbody id="ptBody">
-              <tr><td colspan="6" class="text-center py-4 text-muted">กำลังโหลดข้อมูล...</td></tr>
-            </tbody>
-          </table>
+      <!-- State 1: Claim -->
+      <div id="claim-view" class="hidden">
+        <div class="bg-green-50 border border-green-200 rounded-xl p-6 mb-6">
+          <h2 class="text-xl font-bold text-green-700 mb-2">🎁 สิทธิ์ส่วนลดประจำวัน</h2>
+          <p class="text-gray-600 text-sm">กดรับสิทธิ์เพื่อนำไปแสดงต่อพนักงานตอนชำระเงิน (1 สิทธิ์ / ท่าน / วัน)</p>
         </div>
+        <button onclick="handleClaim()" class="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-3.5 px-4 rounded-xl shadow-lg transition duration-200">
+          กดรับคูปองส่วนลด
+        </button>
       </div>
 
-      <div class="tab-pane fade" id="card-tab" role="tabpanel">
-        <div class="row g-4 mt-1">
-          
-          <div class="col-md-6">
-            <div class="p-3 border rounded-3 bg-light">
-              <h5 class="text-primary fw-bold mb-3">🛠️ ตั้งค่าบัตรพนักงาน</h5>
-              
-              <div class="mb-3">
-                <label class="form-label font-sm">เลือกพนักงานจากระบบ:</label>
-                <select id="empSelect" class="form-select" onchange="onSelectEmployee(this.value)">
-                  <option value="">-- เลือกรายชื่อพนักงาน --</option>
-                </select>
-              </div>
-
-              <div class="form-check form-switch mb-3">
-                <input class="form-check-input" type="checkbox" id="showFullNameCheck" checked onchange="updateCardUI()">
-                <label class="form-check-label fw-medium" for="showFullNameCheck">แสดงชื่อจริงบนบัตร</label>
-              </div>
-
-              <div class="mb-3">
-                <label class="form-label">อัปโหลดรูปภาพใหม่ (แทนรูปเดิม):</label>
-                <input type="file" id="imageUpload" class="form-control" accept="image/*" onchange="previewUploadedImage(event)">
-              </div>
-
-              <div class="row g-2 mb-2">
-                <div class="col-6">
-                  <label class="form-label">รหัสพนักงาน:</label>
-                  <input type="text" id="cardInputId" class="form-control" oninput="updateCardUI()">
-                </div>
-                <div class="col-6">
-                  <label class="form-label">ชื่อเล่น:</label>
-                  <input type="text" id="cardInputNickname" class="form-control" oninput="updateCardUI()">
-                </div>
-              </div>
-
-              <div class="mb-2">
-                <label class="form-label">ชื่อ-นามสกุล (ชื่อจริง):</label>
-                <input type="text" id="cardInputFullName" class="form-control" oninput="updateCardUI()">
-              </div>
-
-              <div class="mb-3">
-                <label class="form-label">แผนก / สังกัด:</label>
-                <input type="text" id="cardInputDept" class="form-control" oninput="updateCardUI()">
-              </div>
-
-              <div class="d-grid gap-2">
-                <button class="btn btn-success fw-medium" onclick="downloadCardImage()">📥 บันทึกรูปภาพบัตร (PNG)</button>
-                <button class="btn btn-outline-primary fw-medium" onclick="printCard()">🖨️ สั่งพิมพ์บัตร (A5 - 4 ใบ)</button>
-              </div>
-            </div>
+      <!-- State 2: Ticket -->
+      <div id="ticket-view" class="hidden">
+        <div class="border-4 rounded-2xl p-6 mb-6 bg-white relative active-ticket" id="ticket-box">
+          <span id="ticket-badge" class="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-green-500 text-white text-xs px-3 py-1 rounded-full font-bold">
+            ใช้งานได้วันนี้เท่านั้น
+          </span>
+          <h3 class="text-gray-500 text-sm mt-2 font-medium">รหัสส่วนลดของคุณ</h3>
+          <p id="ticket-code" class="text-3xl font-black text-gray-800 tracking-wider my-3"></p>
+          <p class="text-xs text-gray-400">วันที่: <span id="ticket-date"></span></p>
+          <div class="mt-4 pt-4 border-t border-dashed border-gray-300">
+            <p class="text-xs text-amber-600 font-medium">⚠️ แสดงหน้าจอนี้ให้พนักงานตอนเช็คบิล</p>
           </div>
-
-          <div class="col-md-6 d-flex flex-column align-items-center justify-content-center">
-            <div class="id-card-wrapper border p-1 rounded-2 bg-white shadow-sm">
-              <div id="idCardElement" class="id-card">
-                
-                <svg class="card-watermark-top" viewBox="0 0 100 80" fill="none" stroke="#ffffff" stroke-width="1.2">
-                  <path d="M5 20 C12 12, 22 25, 28 20 C22 15, 12 28, 5 20 Z M28 20 L33 15 M28 20 L33 25" />
-                  <path d="M95 18 C88 10, 78 23, 72 18 C78 13, 88 26, 95 18 Z M72 18 L67 13 M72 18 L67 23" />
-                  <path d="M0 65 Q 12 58, 25 65 T 50 65 T 75 65 T 100 65" />
-                  <path d="M0 72 Q 12 65, 25 72 T 50 72 T 75 72 T 100 72" />
-                  <path d="M42 12 A 8 8 0 0 1 58 12 Z M40 12 L60 12" />
-                </svg>
-
-                <svg class="card-watermark-bottom" viewBox="0 0 100 120" fill="none" stroke="#0284c7" stroke-width="1.2">
-                  <g transform="translate(6, 75) scale(0.6)">
-                    <ellipse cx="15" cy="12" rx="10" ry="7" />
-                    <path d="M8 6 C2 0, 0 8, 5 10 M22 6 C28 0, 30 8, 25 10 M5 16 C1 20, 2 24, 7 20 M25 16 C29 20, 28 24, 23 20" />
-                  </g>
-                  <g transform="translate(72, 70) scale(0.55)">
-                    <path d="M10 5 C20 0, 25 15, 15 25 C10 28, 5 22, 10 18 C15 15, 12 8, 10 5 Z M20 8 Q 28 2, 32 10" />
-                  </g>
-                  <g transform="translate(42, 92) scale(0.5)">
-                    <path d="M5 0 L5 25 M2 0 L8 0 M8 25 L8 25 M15 0 L15 25 M12 0 C12 8, 18 8, 18 0" />
-                  </g>
-                  <path d="M92 25 C85 20, 78 30, 72 25 C78 20, 85 30, 92 25 Z M72 25 L68 20 M72 25 L68 30" />
-                </svg>
-
-                <div class="card-header-text" id="cardHeaderTitle">บริษัท ครัวบางนา จำกัด</div>
-                
-                <div class="card-photo-container">
-                  <img id="cardImg" src="" alt="รูปพนักงาน">
-                </div>
-
-                <div class="card-body-info">
-                  <div id="cardFullNameText" class="card-fullname">MS. NAN SEIN</div>
-                  <div id="cardNicknameText" class="card-nickname">Som ส้ม</div>
-                  
-                  <div class="card-detail-item">รหัส: <span id="cardIdText">PT 001</span></div>
-                  <div class="card-detail-item">ประเภท: <span id="cardTypeText">พนักงานพาร์ทไทม์</span></div>
-                  <div class="card-detail-item">แผนก: <span id="cardDeptText">บริการ</span></div>
-                </div>
-              </div>
-            </div>
-          </div>
-
         </div>
-      </div>
 
+        <button id="staff-btn" onclick="handleStaffRedeem()" class="w-full bg-slate-800 hover:bg-slate-900 text-white font-medium py-3 px-4 rounded-xl text-sm transition duration-200">
+          🔒 สำหรับพนักงานกดตัดสิทธิ์ (Staff Only)
+        </button>
+      </div>
     </div>
   </div>
-</div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<script>
-  // รูปภาพอวตารสำรองแบบ Inline SVG
-  const DEFAULT_AVATAR = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='105' height='130' viewBox='0 0 105 130'><rect width='100%' height='100%' fill='%23e0f2fe'/><text x='50%' y='40%' dominant-baseline='middle' text-anchor='middle' fill='%230284c7' font-size='12' font-family='Prompt, sans-serif'>ไม่มีรูปภาพ</text><circle cx='52.5' cy='75' r='18' fill='%23bae6fd'/><path d='M 30 110 Q 52.5 90 75 110' stroke='%23bae6fd' stroke-width='12' fill='none' stroke-linecap='round'/></svg>";
+  <script>
+    const LIFF_ID = "2011285020-V51sLoQy";
+    // นำ URL Web App จากข้อ 2 มาวางตรงนี้
+    const API_URL = "วาง_WEB_APP_URL_จาก_APPS_SCRIPT_ตรงนี้";
+    let currentUser = null;
 
-  let allData = { fullTime: [], partTime: [] };
-  let globalEmployees = [];
-
-  window.onload = function() {
-    document.getElementById('cardImg').src = DEFAULT_AVATAR;
-
-    if (typeof google !== 'undefined' && google.script && google.script.run) {
-      google.script.run.withSuccessHandler(renderTables).getEmployeeData();
-    } else {
-      // ข้อมูลจำลองสำหรับทดสอบ/พรีวิวหน้าเว็บ
-      renderTables({
-        fullTime: [
-          { photo: '', empId: 'FT 001', nickname: 'ชาย', fullName: 'MR. SOMCHAI JAIDEE', type: 'พนักงานประจำ', branch: 'สำนักงานใหญ่', department: 'พนักงานประจำ' },
-          { photo: '', empId: 'FT 002', nickname: 'หญิง', fullName: 'MS. SOMYING RAKDEE', type: 'พนักงานประจำ', branch: 'สำนักงานใหญ่', department: 'พนักงานประจำ' }
-        ],
-        partTime: [
-          { photo: '', empId: 'PT 001', nickname: 'Som ส้ม', fullName: 'MS. NAN SEIN', branch: 'บางนา', department: 'บริการ', type: 'พนักงานพาร์ทไทม์' }
-        ]
+    async function callApi(payload) {
+      const res = await fetch(API_URL, {
+        method: 'POST',
+        body: JSON.stringify(payload)
       });
-    }
-  };
-
-  // แปลงลิงก์ Google Drive เป็น Direct CDN Link
-  function getDirectImageUrl(url) {
-    if (!url || typeof url !== 'string') return DEFAULT_AVATAR;
-    url = url.trim();
-    if (url.startsWith('data:image')) return url;
-
-    var driveMatch = url.match(/\/d\/([a-zA-Z0-9_-]+)/) || url.match(/id=([a-zA-Z0-9_-]+)/);
-    if (driveMatch && driveMatch[1]) {
-      return 'https://lh3.googleusercontent.com/d/' + driveMatch[1];
-    }
-    return url;
-  }
-
-  function renderTables(data) {
-    allData = data || { fullTime: [], partTime: [] };
-    globalEmployees = [];
-
-    (allData.fullTime || []).forEach(emp => {
-      emp.globalIndex = globalEmployees.length;
-      globalEmployees.push(emp);
-    });
-
-    (allData.partTime || []).forEach(emp => {
-      emp.globalIndex = globalEmployees.length;
-      globalEmployees.push(emp);
-    });
-
-    renderFullTime(allData.fullTime || []);
-    renderPartTime(allData.partTime || []);
-    populateSelectDropdown();
-  }
-
-  function renderFullTime(list) {
-    const tbody = document.getElementById('ftBody');
-    if (!list || list.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="4" class="text-center text-muted py-4">ไม่พบข้อมูล</td></tr>';
-      return;
-    }
-    tbody.innerHTML = list.map(item => `
-      <tr>
-        <td class="text-center">${getImageTag(item.photo)}</td>
-        <td>
-          <div class="col-id-nick">
-            <span class="badge badge-emp-id">${item.empId || '-'}</span>
-            <span class="badge badge-nickname">${item.nickname || '-'}</span>
-          </div>
-        </td>
-        <td class="fw-medium">${item.fullName || '-'}</td>
-        <td class="text-center">
-          <button class="btn btn-sm btn-outline-primary" onclick="generateCardForEmp(${item.globalIndex})">🪪 ทำบัตร</button>
-        </td>
-      </tr>
-    `).join('');
-  }
-
-  function renderPartTime(list) {
-    const tbody = document.getElementById('ptBody');
-    if (!list || list.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted py-4">ไม่พบข้อมูล</td></tr>';
-      return;
-    }
-    tbody.innerHTML = list.map(item => `
-      <tr>
-        <td class="text-center">${getImageTag(item.photo)}</td>
-        <td>
-          <div class="col-id-nick">
-            <span class="badge badge-emp-id">${item.empId || '-'}</span>
-            <span class="badge badge-nickname">${item.nickname || '-'}</span>
-          </div>
-        </td>
-        <td class="fw-medium">${item.fullName || '-'}</td>
-        <td>${item.branch || '-'}</td>
-        <td><span class="badge badge-dept">${item.department || '-'}</span></td>
-        <td class="text-center">
-          <button class="btn btn-sm btn-outline-primary" onclick="generateCardForEmp(${item.globalIndex})">🪪 ทำบัตร</button>
-        </td>
-      </tr>
-    `).join('');
-  }
-
-  function populateSelectDropdown() {
-    let select = document.getElementById('empSelect');
-    select.innerHTML = '<option value="">-- เลือกรายชื่อพนักงาน --</option>';
-    globalEmployees.forEach((emp, idx) => {
-      let opt = document.createElement('option');
-      opt.value = idx;
-      opt.textContent = `[${emp.empId}] ${emp.fullName} ${emp.nickname}`;
-      select.appendChild(opt);
-    });
-  }
-
-  function getImageTag(url) {
-    let imgUrl = getDirectImageUrl(url);
-    if (imgUrl && imgUrl !== DEFAULT_AVATAR) {
-      return `<img src="${imgUrl}" class="emp-avatar" onerror="this.onerror=null; this.src='${DEFAULT_AVATAR}';">`;
-    }
-    return `<div class="no-img">ไม่มีรูป</div>`;
-  }
-
-  function filterTable() {
-    const keyword = document.getElementById('searchInput').value.toLowerCase();
-    
-    const ftFiltered = (allData.fullTime || []).filter(item => 
-      String(item.empId || '').toLowerCase().includes(keyword) ||
-      String(item.nickname || '').toLowerCase().includes(keyword) ||
-      String(item.fullName || '').toLowerCase().includes(keyword)
-    );
-    renderFullTime(ftFiltered);
-
-    const ptFiltered = (allData.partTime || []).filter(item => 
-      String(item.empId || '').toLowerCase().includes(keyword) ||
-      String(item.nickname || '').toLowerCase().includes(keyword) ||
-      String(item.fullName || '').toLowerCase().includes(keyword) ||
-      String(item.branch || '').toLowerCase().includes(keyword) ||
-      String(item.department || '').toLowerCase().includes(keyword)
-    );
-    renderPartTime(ptFiltered);
-  }
-
-  function generateCardForEmp(index) {
-    const cardTabBtn = document.getElementById('card-tab-btn');
-    const tab = new bootstrap.Tab(cardTabBtn);
-    tab.show();
-
-    document.getElementById('empSelect').value = index;
-    onSelectEmployee(index);
-  }
-
-  function onSelectEmployee(index) {
-    if (index === "" || !globalEmployees[index]) return;
-    let emp = globalEmployees[index];
-
-    document.getElementById('cardInputId').value = emp.empId || '';
-    document.getElementById('cardInputNickname').value = emp.nickname || '';
-    document.getElementById('cardInputFullName').value = emp.fullName || '';
-    document.getElementById('cardInputDept').value = (emp.department && emp.department !== '-') ? emp.department : (emp.branch || '');
-    document.getElementById('cardTypeText').innerText = emp.type || 'พนักงาน';
-
-    let cardImg = document.getElementById('cardImg');
-    
-    // ตั้งค่ารูปภาพ Direct Link
-    let directPhotoUrl = getDirectImageUrl(emp.photo);
-    cardImg.src = directPhotoUrl;
-
-    // ดึงรูป Base64 จาก Server เพื่อเตรียมความพร้อมดาวน์โหลดภาพ PNG
-    if (emp.photo && typeof google !== 'undefined' && google.script && google.script.run) {
-      google.script.run
-        .withSuccessHandler(function(base64Img) {
-          if (base64Img && base64Img.startsWith('data:image')) {
-            cardImg.src = base64Img;
-          }
-        })
-        .getImageAsBase64(emp.photo);
+      return await res.json();
     }
 
-    updateCardUI();
-  }
+    async function initialize() {
+      try {
+        await liff.init({ liffId: LIFF_ID });
+        if (!liff.isLoggedIn()) {
+          liff.login();
+          return;
+        }
 
-  function updateCardUI() {
-    let id = document.getElementById('cardInputId').value || 'EMP-0000';
-    let nickname = document.getElementById('cardInputNickname').value || '';
-    let fullname = document.getElementById('cardInputFullName').value || 'ชื่อ-นามสกุล';
-    let dept = document.getElementById('cardInputDept').value || '-';
-    let showFullName = document.getElementById('showFullNameCheck').checked;
+        currentUser = await liff.getProfile();
+        document.getElementById('user-picture').src = currentUser.pictureUrl || 'https://via.placeholder.com/150';
+        document.getElementById('user-name').innerText = currentUser.displayName;
 
-    let fullNameElem = document.getElementById('cardFullNameText');
-    if (showFullName) {
-      fullNameElem.style.display = 'block';
-      fullNameElem.innerText = fullname;
-    } else {
-      fullNameElem.style.display = 'none';
+        document.getElementById('loading-txt').innerText = "กำลังตรวจสอบสิทธิ์...";
+        const res = await callApi({ action: "checkStatus", userId: currentUser.userId });
+        renderView(res);
+
+      } catch (err) {
+        Swal.fire('Error', err.message, 'error');
+      }
     }
 
-    document.getElementById('cardIdText').innerText = id;
-    document.getElementById('cardNicknameText').innerText = nickname ? `${nickname}` : '';
-    document.getElementById('cardDeptText').innerText = dept;
-  }
+    function renderView(res) {
+      document.getElementById('loading').classList.add('hidden');
+      document.getElementById('content').classList.remove('hidden');
 
-  function previewUploadedImage(event) {
-    let reader = new FileReader();
-    reader.onload = function() {
-      document.getElementById('cardImg').src = reader.result;
-    };
-    if (event.target.files[0]) {
-      reader.readAsDataURL(event.target.files[0]);
+      if (!res.alreadyClaimed) {
+        document.getElementById('claim-view').classList.remove('hidden');
+        document.getElementById('ticket-view').classList.add('hidden');
+      } else {
+        document.getElementById('claim-view').classList.add('hidden');
+        document.getElementById('ticket-view').classList.remove('hidden');
+        
+        document.getElementById('ticket-code').innerText = res.couponCode;
+        document.getElementById('ticket-date').innerText = res.date;
+
+        if (res.status === 'USED') {
+          const badge = document.getElementById('ticket-badge');
+          badge.innerText = 'ใช้สิทธิ์แล้ว';
+          badge.className = 'absolute -top-3 left-1/2 transform -translate-x-1/2 bg-gray-500 text-white text-xs px-3 py-1 rounded-full font-bold';
+          
+          const box = document.getElementById('ticket-box');
+          box.classList.remove('active-ticket');
+          box.classList.add('border-gray-300', 'bg-gray-50', 'opacity-75');
+
+          const btn = document.getElementById('staff-btn');
+          btn.disabled = true;
+          btn.innerText = '✓ ตัดสิทธิ์เรียบร้อยแล้ว';
+          btn.className = 'w-full bg-gray-300 text-gray-500 font-medium py-3 px-4 rounded-xl text-sm cursor-not-allowed';
+        }
+      }
     }
-  }
 
-  // ดาวน์โหลดรูปภาพ PNG บัตรพนักงาน 1 ใบ
-  function downloadCardImage() {
-    let cardElement = document.getElementById('idCardElement');
-    let empId = document.getElementById('cardInputId').value || 'ID_Card';
+    async function handleClaim() {
+      const result = await Swal.fire({
+        title: 'ยืนยันการรับสิทธิ์?',
+        text: 'คูปองจะใช้ได้เฉพาะวันนี้เท่านั้น',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#22c55e',
+        confirmButtonText: 'รับสิทธิ์เลย',
+        cancelButtonText: 'ยกเลิก'
+      });
 
-    html2canvas(cardElement, { scale: 3, useCORS: true, allowTaint: true }).then(canvas => {
-      let link = document.createElement('a');
-      link.download = `บัตรพนักงาน_${empId}.png`;
-      link.href = canvas.toDataURL('image/png');
-      link.click();
-    });
-  }
+      if (result.isConfirmed) {
+        Swal.showLoading();
+        const res = await callApi({ action: "claimCoupon", userId: currentUser.userId, displayName: currentUser.displayName });
+        if (res.success) {
+          Swal.fire('สำเร็จ!', 'รับคูปองส่วนลดเรียบร้อย', 'success');
+          renderView({ alreadyClaimed: true, couponCode: res.couponCode, status: res.status, date: res.date });
+        } else {
+          Swal.fire('แจ้งเตือน', res.message, 'warning');
+        }
+      }
+    }
 
-  // สั่งพิมพ์บัตรพนักงานแบบ 4 ใบลงบนกระดาษ A5 (ขนาดจริง 54x85.6mm พร้อมเส้นประสำหรับตัด)
-  function printCard() {
-    let cardElement = document.getElementById('idCardElement');
-    let empId = document.getElementById('cardInputId').value || 'ID_Card';
+    async function handleStaffRedeem() {
+      const result = await Swal.fire({
+        title: 'สำหรับพนักงาน',
+        input: 'password',
+        inputLabel: 'กรุณากรอกรหัส PIN พนักงาน (4 หลัก)',
+        inputPlaceholder: 'PIN',
+        inputAttributes: { maxlength: 4, autofocus: 'autofocus' },
+        showCancelButton: true,
+        confirmButtonColor: '#1e293b',
+        confirmButtonText: 'ยืนยันตัดสิทธิ์',
+        cancelButtonText: 'ยกเลิก'
+      });
 
-    html2canvas(cardElement, { scale: 3, useCORS: true, allowTaint: true }).then(canvas => {
-      let imgDataUrl = canvas.toDataURL('image/png');
-      let printWindow = window.open('', '_blank');
+      if (result.isConfirmed && result.value) {
+        Swal.showLoading();
+        const res = await callApi({ action: "redeemCoupon", userId: currentUser.userId, pin: result.value });
+        if (res.success) {
+          Swal.fire('สำเร็จ!', res.message, 'success');
+          const statusRes = await callApi({ action: "checkStatus", userId: currentUser.userId });
+          renderView(statusRes);
+        } else {
+          Swal.fire('ผิดพลาด', res.message, 'error');
+        }
+      }
+    }
 
-      printWindow.document.write(`
-        <!DOCTYPE html>
-        <html>
-          <head>
-            <title>พิมพ์บัตรพนักงาน - ${empId} (A5 - 4 ใบ)</title>
-            <style>
-              @page {
-                size: A5 portrait;
-                margin: 0;
-              }
-
-              * {
-                box-sizing: border-box;
-                margin: 0;
-                padding: 0;
-              }
-
-              body {
-                width: 148mm;
-                height: 210mm;
-                display: flex;
-                flex-wrap: wrap;
-                justify-content: center;
-                align-content: center;
-                gap: 6mm 8mm;
-                background-color: #ffffff;
-                -webkit-print-color-adjust: exact;
-                print-color-adjust: exact;
-              }
-
-              .card-box {
-                width: 54mm;
-                height: 85.6mm;
-                border: 0.2mm dashed #94a3b8;
-                position: relative;
-                overflow: hidden;
-              }
-
-              .card-box img {
-                width: 100%;
-                height: 100%;
-                object-fit: cover;
-                display: block;
-              }
-            </style>
-          </head>
-          <body>
-            <div class="card-box"><img src="${imgDataUrl}"></div>
-            <div class="card-box"><img src="${imgDataUrl}"></div>
-            <div class="card-box"><img src="${imgDataUrl}"></div>
-            <div class="card-box"><img src="${imgDataUrl}"></div>
-
-            <script>
-              window.onload = function() {
-                setTimeout(function() {
-                  window.print();
-                  window.close();
-                }, 300);
-              };
-            <\/script>
-          </body>
-        </html>
-      `);
-      printWindow.document.close();
-    });
-  }
-</script>
+    window.onload = initialize;
+  </script>
 </body>
 </html>
